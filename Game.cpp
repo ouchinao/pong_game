@@ -8,7 +8,19 @@ Game::Game() {
 	mRenderer = nullptr;
 	mTicksCount = 0;
 	mIsRunning = true;
-	mPaddlesDir = 0;
+	lPaddlesDir = 0;
+	lPaddlesPos.x = 0;
+	lPaddlesPos.y = 0;
+	mBallPos.x = 0;
+	mBallPos.y = 0;
+	mBallVel.x = 0;
+	mBallVel.y = 0;
+	mNextScene = 0;
+	mScene = 0;
+}
+
+Game::~Game() {
+	//デストラクタ
 }
 
 bool Game::Initialize() {
@@ -43,8 +55,8 @@ bool Game::Initialize() {
 		return false;
 	}
 
-	mPaddlesPos.x = 10.0f;
-	mPaddlesPos.y = 768.0f / 2.0f;
+	lPaddlesPos.x = 10.0f;
+	lPaddlesPos.y = 768.0f / 2.0f;
 	mBallPos.x = 1024.0f / 2.0f;
 	mBallPos.y = 768.0f / 2.0f;
 	mBallVel.x = -200.0f;
@@ -54,6 +66,7 @@ bool Game::Initialize() {
 }
 
 void Game::Run() {
+	
 	while (mIsRunning) {
 		ProcessInput();
 		UpdateGame();
@@ -83,13 +96,21 @@ void Game::ProcessInput() {
 	if (state[SDL_SCANCODE_ESCAPE]) {
 		mIsRunning = false;
 	}
-	mPaddlesDir = 0;
-	if (state[SDL_SCANCODE_W]) {
-		mPaddlesDir -= 1;
+	lPaddlesDir = 0;
+	if (state[SDL_SCANCODE_W]) { //wで左側のPaddleが上に
+		lPaddlesDir -= 1;
 	}
-	if (state[SDL_SCANCODE_S]) {
-		mPaddlesDir += 1;
+	if (state[SDL_SCANCODE_S]) { //sで左側のPaddleが下に
+		lPaddlesDir += 1;
 	}
+}
+
+void Game::StartScene() {
+
+}
+
+void Game::UpdateScene() {
+
 }
 
 void Game::UpdateGame() {
@@ -102,20 +123,20 @@ void Game::UpdateGame() {
 	}
 	mTicksCount = SDL_GetTicks(); //パドル用
 
-	if (mPaddlesDir != 0) {
-		mPaddlesPos.y += mPaddlesDir * 300.0f * deltaTime;
-		if (mPaddlesPos.y < (paddle_H / 2.0f + thickness)) {
-			mPaddlesPos.y = paddle_H / 2.0f + thickness;
+	if (lPaddlesDir != 0) {
+		lPaddlesPos.y += lPaddlesDir * 300.0f * deltaTime;
+		if (lPaddlesPos.y < (paddle_H / 2.0f + thickness)) {
+			lPaddlesPos.y = paddle_H / 2.0f + thickness;
 		}
-		else if (mPaddlesPos.y > (768.0f - paddle_H / 2.0f - thickness)) {
-			mPaddlesPos.y = 768.0f - paddle_H / 2.0f - thickness;
+		else if (lPaddlesPos.y > (768.0f - paddle_H / 2.0f - thickness)) {
+			lPaddlesPos.y = 768.0f - paddle_H / 2.0f - thickness;
 		}
 	}
 
 	mBallPos.x += mBallVel.x * deltaTime;
 	mBallPos.y += mBallVel.y * deltaTime; //Ballの動き方
 
-	float diff = mPaddlesPos.y - mBallPos.y;
+	float diff = lPaddlesPos.y - mBallPos.y;
 	diff = (diff > 0.0f) ? diff : -diff;
 	if (diff <= paddle_H/2.0f && mBallPos.x <= 25.0f && mBallPos.y >= 20.0f && mBallVel.x < 0.0f) {
 		mBallVel.x *= -1.0f;
@@ -136,7 +157,7 @@ void Game::UpdateGame() {
 }
 
 void Game::GenerateOutput() {
-	SDL_SetRenderDrawColor(mRenderer, 0, 0, 0, 255); //青色
+	SDL_SetRenderDrawColor(mRenderer, 0, 0, 0, 255); //黒色
 
 	SDL_RenderClear(mRenderer); //背景
 
@@ -153,15 +174,15 @@ void Game::GenerateOutput() {
 	wall.y = 768 - thickness;
 	SDL_RenderFillRect(mRenderer, &wall);
 
-	wall.x = 1024 - thickness;
+	wall.x = WIN_W - thickness;
 	wall.y = 0;
 	wall.w = thickness;
 	wall.h = WIN_H;
 	SDL_RenderFillRect(mRenderer, &wall);
 
 	SDL_Rect paddle{
-		static_cast<int>(mPaddlesPos.x),
-		static_cast<int>(mPaddlesPos.y - paddle_H / 2),
+		static_cast<int>(lPaddlesPos.x),
+		static_cast<int>(lPaddlesPos.y - paddle_H / 2),
 		thickness,
 		static_cast<int>(paddle_H)
 	};
